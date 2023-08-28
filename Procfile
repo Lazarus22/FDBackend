@@ -1,1 +1,1 @@
-web: cmd\cmd.exe
+web: ./FDBackend.exe
