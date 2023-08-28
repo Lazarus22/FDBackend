@@ -15,7 +15,7 @@ func main() {
 	}
 	fmt.Println("Listening on port:", port)
 	router := http.NewServeMux()
-	router.HandleFunc("/recommend", recommendations.Handler)
+	router.HandleFunc("/recommendations", recommendations.Handler)
 
 	corsMiddleware := handlers.CORS(handlers.AllowedOrigins([]string{"*"}))
 	http.ListenAndServe(":"+port, corsMiddleware(router))
