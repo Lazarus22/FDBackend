@@ -1,16 +1,20 @@
 package main
 
 import (
-	"github.com/gorilla/handlers"
+	"os"
 	"net/http"
+	"github.com/gorilla/handlers"
 	"FlavorDB/backend/internal/recommendations"
 )
 
 func main() {
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080" // localhost
+	}
 	router := http.NewServeMux()
 	router.HandleFunc("/recommend", recommendations.Handler)
 
-	// Apply CORS middleware
-	corsMiddleware := handlers.CORS(handlers.AllowedOrigins([]string{"http://localhost:3000"}))
-	http.ListenAndServe(":8080", corsMiddleware(router))
+	corsMiddleware := handlers.CORS(handlers.AllowedOrigins([]string{"*"}))
+	http.ListenAndServe(":"+port, corsMiddleware(router))
 }

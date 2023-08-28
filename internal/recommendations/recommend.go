@@ -5,6 +5,7 @@ import (
 	"context"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	"net/http"
+	"os"
 )
 
 // RecommendationsResponse represents the structure of the response
@@ -28,8 +29,8 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := RecommendationsResponse{
-			Flavor:         flavor,
-			Recommendations: recommendations,
+		Flavor:         flavor,
+		Recommendations: recommendations,
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -38,9 +39,9 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 
 func getRecommendations(flavor string) ([]string, error) {
 	ctx := context.Background()
-	uri := "neo4j+s://e29d74fa.databases.neo4j.io"
-	username := "neo4j" // Your Neo4j username
-	password := "Allagash22" // Your Neo4j password
+	uri := os.Getenv("NEO4J_URI") // Retrieving URI from environment variable
+	username := os.Getenv("NEO4J_USERNAME") // Retrieving Username from environment variable
+	password := os.Getenv("NEO4J_PASSWORD") // Retrieving Password from environment variable
 
 	driver, err := neo4j.NewDriverWithContext(
 		uri,
@@ -58,10 +59,8 @@ func getRecommendations(flavor string) ([]string, error) {
 	session := driver.NewSession(ctx, neo4j.SessionConfig{DatabaseName: "neo4j"})
 	defer session.Close(ctx)
 
-	// Updated Cypher query using correct labels and relationship type
 	query := "MATCH (i1:Ingredient {name: $flavor})-[:pairs_with]->(i2:Ingredient) RETURN i2.name AS recommendation"
 
-	// Run query using a managed transaction
 	people, err := session.ExecuteRead(ctx,
 		func(tx neo4j.ManagedTransaction) (interface{}, error) {
 			result, err := tx.Run(ctx, query, map[string]interface{}{
@@ -80,7 +79,6 @@ func getRecommendations(flavor string) ([]string, error) {
 		return nil, err
 	}
 
-	// Collect recommendations
 	var recommendations []string
 	for _, record := range people.([]*neo4j.Record) {
 		recommendations = append(recommendations, record.AsMap()["recommendation"].(string))
