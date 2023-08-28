@@ -4,7 +4,7 @@ import (
 	"os"
 	"net/http"
 	"github.com/gorilla/handlers"
-	"FlavorDB/backend/internal/recommendations"
+	"FDBackend/internal/recommendations"
 )
 
 func main() {
