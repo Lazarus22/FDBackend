@@ -1,1 +1,1 @@
-web: ./FDBackend.exe
+web: ./main
