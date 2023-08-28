@@ -39,9 +39,9 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 
 func getRecommendations(flavor string) ([]string, error) {
 	ctx := context.Background()
-	uri := os.Getenv("NEO4J_URI") // Retrieving URI from environment variable
-	username := os.Getenv("NEO4J_USERNAME") // Retrieving Username from environment variable
-	password := os.Getenv("NEO4J_PASSWORD") // Retrieving Password from environment variable
+	uri := os.Getenv("NEO4J_URI") 
+	username := os.Getenv("NEO4J_USERNAME") 
+	password := os.Getenv("NEO4J_PASSWORD") 
 
 	driver, err := neo4j.NewDriverWithContext(
 		uri,

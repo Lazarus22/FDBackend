@@ -1,1 +1,1 @@
-web: ./main
+web: ./cmd.exe
