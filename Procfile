@@ -1,1 +1,1 @@
-web: ./cmd.exe
+web: cmd\cmd.exe
