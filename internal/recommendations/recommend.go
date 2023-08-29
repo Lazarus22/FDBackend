@@ -40,7 +40,8 @@ func NewHandler(driver neo4j.DriverWithContext) func(w http.ResponseWriter, r *h
 func getRecommendations(flavor string, driver neo4j.DriverWithContext) ([]string, error) {
 	ctx := context.Background()
 
-	session := driver.NewSession(neo4j.SessionConfig{DatabaseName: "neo4j"})
+    // Add context as the first argument
+	session := driver.NewSession(ctx, neo4j.SessionConfig{DatabaseName: "neo4j"})
 	defer session.Close(ctx)
 
 	var recommendations []string
@@ -59,12 +60,13 @@ func getRecommendations(flavor string, driver neo4j.DriverWithContext) ([]string
 		return nil, err
 	}
 
-	for result.Next() {
-		record := result.Record()
-		value, ok := record.Get("recommendation")
-		if ok {
-			recommendations = append(recommendations, value.(string))
-		}
+    // Add context as an argument
+		for result.Next(ctx) {
+			record := result.Record()
+			value, ok := record.Get("recommendation")
+			if ok {
+					recommendations = append(recommendations, value.(string))
+			}
 	}
 
 	if err = result.Err(); err != nil {
