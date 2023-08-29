@@ -21,7 +21,6 @@ func enforceHTTPS(next http.Handler) http.Handler {
 	})
 }
 
-
 func main() {
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -45,5 +44,12 @@ func main() {
 	router.HandleFunc("/recommendations", recommendations.NewHandler(driver))
 
 	corsMiddleware := handlers.CORS(handlers.AllowedOrigins([]string{"*"}))
-	http.ListenAndServe(":"+port, corsMiddleware(enforceHTTPS(router)))
+
+	isProduction := os.Getenv("ENV") == "PRODUCTION"
+
+	if isProduction {
+		http.ListenAndServe(":"+port, corsMiddleware(enforceHTTPS(router)))
+	} else {
+		http.ListenAndServe(":"+port, corsMiddleware(router))
+	}
 }
