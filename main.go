@@ -10,15 +10,6 @@ import (
 	"FDBackend/internal/recommendations" // Adjust the path to match your project structure
 )
 
-func enforceHTTPS(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.TLS == nil {
-			http.Redirect(w, r, "https://"+r.Host+r.RequestURI, http.StatusMovedPermanently)
-			return
-		}
-		next.ServeHTTP(w, r)
-	})
-}
 
 func main() {
 	port := os.Getenv("PORT")
