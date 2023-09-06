@@ -1,11 +1,11 @@
 package recommendations
 
 import (
+	"FDBackend/cypherQueries"
 	"context"
 	"encoding/json"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	"net/http"
-	"FDBackend/cypherQueries"
 )
 
 type Pairing struct {
@@ -14,7 +14,7 @@ type Pairing struct {
 }
 
 type RecommendationsResponse struct {
-	Flavor          string   `json:"flavor"`
+	Flavor          string    `json:"flavor"`
 	Recommendations []Pairing `json:"recommendations"`
 }
 
@@ -26,7 +26,7 @@ func NewHandler(driver neo4j.DriverWithContext) func(w http.ResponseWriter, r *h
 			return
 		}
 
-		query, err := cypherQueries.GetRecommendationsQuery("queries.cypher")
+		query, err := cypherQueries.GetRecommendationsQuery("GetRecommendationsQuery")
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
