@@ -16,30 +16,31 @@ func init() {
 	}
 }
 
+
 func InitializeQueries() error {
 	QueryMap = make(map[string]string)
 
 	// Read the file
 	fileContent, err := os.ReadFile("./cypherQueries/queries.cypher")
-		if err != nil {
-		return err
+	if err != nil {
+			return err
 	}
 
 	// Convert to string and split by semicolon
 	queries := strings.Split(string(fileContent), ";")
 
 	for _, query := range queries {
-		query = strings.TrimSpace(query)
-		if query == "" {
-			continue
-		}
+			query = strings.TrimSpace(query)
+			if query == "" {
+					continue
+			}
 
-		lines := strings.Split(query, "\n")
-		comment := strings.TrimSpace(lines[0])
-		queryBody := strings.Join(lines[1:], "\n")
+			lines := strings.Split(query, "\n")
+			comment := strings.TrimSpace(strings.TrimPrefix(lines[0], "//"))  // This line changed
+			queryBody := strings.Join(lines[1:], "\n")
 
-		QueryMap[comment] = queryBody
-		fmt.Printf("Loaded query with key: %s\n", comment) // Add this line for logging
+			QueryMap[comment] = queryBody
+			fmt.Printf("Loaded query with key: %s\n", comment) // Logging for debugging
 	}
 
 	return nil
