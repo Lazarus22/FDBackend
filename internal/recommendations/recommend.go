@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	"net/http"
+	"FDBackend/cypherQueries"
 )
 
 type Pairing struct {
@@ -25,7 +26,13 @@ func NewHandler(driver neo4j.DriverWithContext) func(w http.ResponseWriter, r *h
 			return
 		}
 
-		recommendations, err := getRecommendations(flavor, driver)
+		query, err := cypherQueries.GetRecommendationsQuery("queries.cypher")
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		recommendations, err := getRecommendations(flavor, driver, query)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -41,7 +48,7 @@ func NewHandler(driver neo4j.DriverWithContext) func(w http.ResponseWriter, r *h
 	}
 }
 
-func getRecommendations(flavor string, driver neo4j.DriverWithContext) ([]Pairing, error) {
+func getRecommendations(flavor string, driver neo4j.DriverWithContext, query string) ([]Pairing, error) {
 	ctx := context.Background()
 	session := driver.NewSession(ctx, neo4j.SessionConfig{DatabaseName: "neo4j"})
 	defer session.Close(ctx)
@@ -50,39 +57,34 @@ func getRecommendations(flavor string, driver neo4j.DriverWithContext) ([]Pairin
 
 	tx, err := session.BeginTransaction(ctx)
 	if err != nil {
-			return nil, err
+		return nil, err
 	}
 
-	query := `
-	MATCH (i1)-[r:pairs_with]->(i2)
-	WHERE i1.name = $flavor OR properties(r).Value = $flavor
-	RETURN i2.name AS recommendation, r.Value AS strength
-	`
 	params := map[string]interface{}{"flavor": flavor}
 
 	result, err := tx.Run(ctx, query, params)
 	if err != nil {
-			tx.Rollback(ctx)
-			return nil, err
+		tx.Rollback(ctx)
+		return nil, err
 	}
 
 	for result.Next(ctx) {
-			record := result.Record()
-			name, ok1 := record.Get("recommendation")
-			strength, ok2 := record.Get("strength")
-			if ok1 && ok2 {
-					recommendations = append(recommendations, Pairing{Name: name.(string), Strength: strength.(int)})
-			}
-	}  // <-- This closing brace was missing
+		record := result.Record()
+		name, ok1 := record.Get("recommendation")
+		strength, ok2 := record.Get("strength")
+		if ok1 && ok2 {
+			recommendations = append(recommendations, Pairing{Name: name.(string), Strength: strength.(int)})
+		}
+	}
 
 	if err = result.Err(); err != nil {
-			tx.Rollback(ctx)
-			return nil, err
+		tx.Rollback(ctx)
+		return nil, err
 	}
 
 	err = tx.Commit(ctx)
 	if err != nil {
-			return nil, err
+		return nil, err
 	}
 
 	return recommendations, nil
