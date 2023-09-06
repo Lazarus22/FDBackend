@@ -4,6 +4,7 @@ import (
 	"errors"
 	"os"
 	"strings"
+	"fmt"
 )
 
 var QueryMap map[string]string
@@ -19,7 +20,7 @@ func InitializeQueries() error {
 	QueryMap = make(map[string]string)
 
 	// Read the file
-	fileContent, err := os.ReadFile("./cypherQueries/queries.cypher")  // Updated path
+	fileContent, err := os.ReadFile("queries.cypher")
 	if err != nil {
 		return err
 	}
@@ -38,6 +39,7 @@ func InitializeQueries() error {
 		queryBody := strings.Join(lines[1:], "\n")
 
 		QueryMap[comment] = queryBody
+		fmt.Printf("Loaded query with key: %s\n", comment) // Add this line for logging
 	}
 
 	return nil
