@@ -11,7 +11,7 @@ var QueryMap map[string]string
 func init() {
 	err := InitializeQueries()
 	if err != nil {
-			panic(err)
+		panic(err)
 	}
 }
 
@@ -19,7 +19,7 @@ func InitializeQueries() error {
 	QueryMap = make(map[string]string)
 
 	// Read the file
-	fileContent, err := os.ReadFile("./queries.cypher") 
+	fileContent, err := os.ReadFile("./cypherQueries/queries.cypher")  // Updated path
 	if err != nil {
 		return err
 	}
