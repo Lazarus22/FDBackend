@@ -14,7 +14,8 @@ type RecommendationsResponse struct {
 }
 
 // NewHandler returns a new HTTP handler function for recommendations.
-func NewHandler(driver neo4j.DriverWithContext) func(w http.ResponseWriter, r *http.Request) {	return func(w http.ResponseWriter, r *http.Request) {
+func NewHandler(driver neo4j.DriverWithContext) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
 		flavor := r.URL.Query().Get("flavor")
 		if flavor == "" {
 			http.Error(w, "Flavor is required", http.StatusBadRequest)
@@ -28,7 +29,7 @@ func NewHandler(driver neo4j.DriverWithContext) func(w http.ResponseWriter, r *h
 		}
 
 		response := RecommendationsResponse{
-			Flavor:         flavor,
+			Flavor:          flavor,
 			Recommendations: recommendations,
 		}
 
@@ -40,7 +41,7 @@ func NewHandler(driver neo4j.DriverWithContext) func(w http.ResponseWriter, r *h
 func getRecommendations(flavor string, driver neo4j.DriverWithContext) ([]string, error) {
 	ctx := context.Background()
 
-    // Add context as the first argument
+	// Add context as the first argument
 	session := driver.NewSession(ctx, neo4j.SessionConfig{DatabaseName: "neo4j"})
 	defer session.Close(ctx)
 
@@ -51,7 +52,11 @@ func getRecommendations(flavor string, driver neo4j.DriverWithContext) ([]string
 		return nil, err
 	}
 
-	query := "MATCH (i1:Ingredient {name: $flavor})-[:pairs_with]->(i2:Ingredient) RETURN i2.name AS recommendation"
+	query := `
+	MATCH (i1:Ingredient)-[r:pairs_with]->(i2:Ingredient)
+	WHERE i1.name = $flavor OR r.Property = $flavor
+	RETURN i2.name AS recommendation, r.Value AS strength
+	`
 	params := map[string]interface{}{"flavor": flavor}
 
 	result, err := tx.Run(ctx, query, params)
@@ -60,13 +65,13 @@ func getRecommendations(flavor string, driver neo4j.DriverWithContext) ([]string
 		return nil, err
 	}
 
-    // Add context as an argument
-		for result.Next(ctx) {
-			record := result.Record()
-			value, ok := record.Get("recommendation")
-			if ok {
-					recommendations = append(recommendations, value.(string))
-			}
+	// Add context as an argument
+	for result.Next(ctx) {
+		record := result.Record()
+		value, ok := record.Get("recommendation")
+		if ok {
+			recommendations = append(recommendations, value.(string))
+		}
 	}
 
 	if err = result.Err(); err != nil {
