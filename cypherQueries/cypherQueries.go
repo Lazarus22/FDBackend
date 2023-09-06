@@ -16,7 +16,6 @@ func init() {
 	}
 }
 
-
 func InitializeQueries() error {
 	QueryMap = make(map[string]string)
 
