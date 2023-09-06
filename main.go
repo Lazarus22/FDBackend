@@ -1,7 +1,7 @@
 package main
 
 import (
-	"FDBackend/internal/recommendations" // Adjust the path to match your project structure
+	"FDBackend/internal/recommendations"
 	"context"
 	"fmt"
 	"github.com/gorilla/handlers"
