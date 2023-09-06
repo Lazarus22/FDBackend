@@ -26,7 +26,7 @@ func NewHandler(driver neo4j.DriverWithContext) func(w http.ResponseWriter, r *h
 			return
 		}
 
-		query, err := cypherQueries.GetRecommendationsQuery("// GetRecommendationsQuery")
+		query, err := cypherQueries.GetRecommendationsQuery("GetRecommendationsQuery")
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(err.Error()))
