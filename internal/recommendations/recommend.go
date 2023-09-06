@@ -7,13 +7,16 @@ import (
 	"net/http"
 )
 
-// RecommendationsResponse represents the structure of the response
-type RecommendationsResponse struct {
-	Flavor          string   `json:"flavor"`
-	Recommendations []string `json:"recommendations"`
+type Pairing struct {
+	Name     string `json:"name"`
+	Strength int    `json:"strength"`
 }
 
-// NewHandler returns a new HTTP handler function for recommendations.
+type RecommendationsResponse struct {
+	Flavor          string   `json:"flavor"`
+	Recommendations []Pairing `json:"recommendations"`
+}
+
 func NewHandler(driver neo4j.DriverWithContext) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		flavor := r.URL.Query().Get("flavor")
@@ -38,14 +41,12 @@ func NewHandler(driver neo4j.DriverWithContext) func(w http.ResponseWriter, r *h
 	}
 }
 
-func getRecommendations(flavor string, driver neo4j.DriverWithContext) ([]string, error) {
+func getRecommendations(flavor string, driver neo4j.DriverWithContext) ([]Pairing, error) {
 	ctx := context.Background()
-
-	// Add context as the first argument
 	session := driver.NewSession(ctx, neo4j.SessionConfig{DatabaseName: "neo4j"})
 	defer session.Close(ctx)
 
-	var recommendations []string
+	var recommendations []Pairing
 
 	tx, err := session.BeginTransaction(ctx)
 	if err != nil {
@@ -53,8 +54,8 @@ func getRecommendations(flavor string, driver neo4j.DriverWithContext) ([]string
 	}
 
 	query := `
-	MATCH (i1:Ingredient)-[r:pairs_with]->(i2:Ingredient)
-	WHERE i1.name = $flavor OR r.Property = $flavor
+	MATCH (i1)-[r:pairs_with]->(i2)
+	WHERE i1.name = $flavor OR properties(r).Value = $flavor
 	RETURN i2.name AS recommendation, r.Value AS strength
 	`
 	params := map[string]interface{}{"flavor": flavor}
@@ -65,13 +66,11 @@ func getRecommendations(flavor string, driver neo4j.DriverWithContext) ([]string
 		return nil, err
 	}
 
-	// Add context as an argument
 	for result.Next(ctx) {
 		record := result.Record()
-		value, ok := record.Get("recommendation")
-		if ok {
-			recommendations = append(recommendations, value.(string))
-		}
+		name, _ := record.Get("recommendation")
+		strength, _ := record.Get("strength")
+		recommendations = append(recommendations, Pairing{Name: name.(string), Strength: strength.(int)})
 	}
 
 	if err = result.Err(); err != nil {
