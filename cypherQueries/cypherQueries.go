@@ -20,8 +20,8 @@ func InitializeQueries() error {
 	QueryMap = make(map[string]string)
 
 	// Read the file
-	fileContent, err := os.ReadFile("queries.cypher")
-	if err != nil {
+	fileContent, err := os.ReadFile("./cypherQueries/queries.cypher")
+		if err != nil {
 		return err
 	}
 
