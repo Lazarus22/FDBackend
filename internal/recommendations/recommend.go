@@ -68,10 +68,11 @@ func getRecommendations(flavor string, driver neo4j.DriverWithContext) ([]Pairin
 
 	for result.Next(ctx) {
 		record := result.Record()
-		name, _ := record.Get("recommendation")
-		strength, _ := record.Get("strength")
-		recommendations = append(recommendations, Pairing{Name: name.(string), Strength: strength.(int)})
-	}
+		name, ok1 := record.Get("recommendation")
+		strength, ok2 := record.Get("strength")
+		if ok1 && ok2 {
+				recommendations = append(recommendations, Pairing{Name: name.(string), Strength: strength.(int)})
+		}
 
 	if err = result.Err(); err != nil {
 		tx.Rollback(ctx)
