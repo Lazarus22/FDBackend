@@ -2,7 +2,7 @@ package main
 
 import (
 	"FDBackend/internal/recommendations"
-	"FDBackend/cypherQueries"  
+	"FDBackend/cypherQueries"
 	"context"
 	"fmt"
 	"github.com/gorilla/handlers"
