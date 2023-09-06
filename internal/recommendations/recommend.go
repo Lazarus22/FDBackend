@@ -50,7 +50,7 @@ func getRecommendations(flavor string, driver neo4j.DriverWithContext) ([]Pairin
 
 	tx, err := session.BeginTransaction(ctx)
 	if err != nil {
-		return nil, err
+			return nil, err
 	}
 
 	query := `
@@ -62,26 +62,27 @@ func getRecommendations(flavor string, driver neo4j.DriverWithContext) ([]Pairin
 
 	result, err := tx.Run(ctx, query, params)
 	if err != nil {
-		tx.Rollback(ctx)
-		return nil, err
+			tx.Rollback(ctx)
+			return nil, err
 	}
 
 	for result.Next(ctx) {
-		record := result.Record()
-		name, ok1 := record.Get("recommendation")
-		strength, ok2 := record.Get("strength")
-		if ok1 && ok2 {
-				recommendations = append(recommendations, Pairing{Name: name.(string), Strength: strength.(int)})
-		}
+			record := result.Record()
+			name, ok1 := record.Get("recommendation")
+			strength, ok2 := record.Get("strength")
+			if ok1 && ok2 {
+					recommendations = append(recommendations, Pairing{Name: name.(string), Strength: strength.(int)})
+			}
+	}  // <-- This closing brace was missing
 
 	if err = result.Err(); err != nil {
-		tx.Rollback(ctx)
-		return nil, err
+			tx.Rollback(ctx)
+			return nil, err
 	}
 
 	err = tx.Commit(ctx)
 	if err != nil {
-		return nil, err
+			return nil, err
 	}
 
 	return recommendations, nil

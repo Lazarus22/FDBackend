@@ -1,13 +1,13 @@
 package main
 
 import (
+	"FDBackend/internal/recommendations" // Adjust the path to match your project structure
 	"context"
 	"fmt"
 	"github.com/gorilla/handlers"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	"net/http"
 	"os"
-	"FDBackend/internal/recommendations" // Adjust the path to match your project structure
 )
 
 func enforceHTTPS(next http.Handler) http.Handler {
