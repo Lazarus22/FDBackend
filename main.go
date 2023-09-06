@@ -2,6 +2,7 @@ package main
 
 import (
 	"FDBackend/internal/recommendations"
+	"FDBackend/cypherQueries"  
 	"context"
 	"fmt"
 	"github.com/gorilla/handlers"
@@ -22,6 +23,12 @@ func enforceHTTPS(next http.Handler) http.Handler {
 }
 
 func main() {
+	// Initialize Queries
+	err := cypherQueries.InitializeQueries()
+	if err != nil {
+		panic(err)
+	}
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080" // default port

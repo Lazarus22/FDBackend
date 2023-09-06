@@ -8,6 +8,13 @@ import (
 
 var QueryMap map[string]string
 
+func init() {
+	err := InitializeQueries()
+	if err != nil {
+			panic(err)
+	}
+}
+
 func InitializeQueries() error {
 	QueryMap = make(map[string]string)
 
