@@ -12,8 +12,8 @@ import (
 )
 
 func echoEnvHandler(w http.ResponseWriter, _ *http.Request) {
-	neo4jURL := os.Getenv("NEO4J_URL")
-	fmt.Fprintf(w, "NEO4J_URL: %s", neo4jURL)
+	neo4jURL := os.Getenv("NEO4J_URI")
+	fmt.Fprintf(w, "NEO4J_URI: %s", neo4jURL)
 }
 
 
