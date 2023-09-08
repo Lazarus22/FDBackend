@@ -29,7 +29,6 @@ func enforceHTTPS(next http.Handler) http.Handler {
 }
 
 func main() {
-	http.HandleFunc("/echo/env", echoEnvHandler)
 	// Initialize Queries
 	err := cypherQueries.InitializeQueries()
 	if err != nil {
@@ -55,6 +54,7 @@ func main() {
 	defer driver.Close(ctx)
 
 	router := http.NewServeMux()
+	router.HandleFunc("/echo/env", echoEnvHandler) // Include this line
 	router.HandleFunc("/recommendations", recommendations.NewHandler(driver))
 
 	corsMiddleware := handlers.CORS(handlers.AllowedOrigins([]string{"*"}))
