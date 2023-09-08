@@ -11,10 +11,11 @@ import (
 	"os"
 )
 
-func echoEnvHandler(w http.ResponseWriter, r *http.Request) {
+func echoEnvHandler(w http.ResponseWriter, _ *http.Request) {
 	neo4jURL := os.Getenv("NEO4J_URL")
 	fmt.Fprintf(w, "NEO4J_URL: %s", neo4jURL)
 }
+
 
 func enforceHTTPS(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
