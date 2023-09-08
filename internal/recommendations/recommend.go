@@ -10,7 +10,7 @@ import (
 
 type Pairing struct {
 	Name     string `json:"name"`
-	Strength int    `json:"strength"`
+	Strength int64  `json:"strength"`
 }
 
 type RecommendationsResponse struct {
@@ -73,21 +73,16 @@ func getRecommendations(flavor string, driver neo4j.DriverWithContext, query str
 	for result.Next(ctx) {
     record := result.Record()
     name, _ := record.Get("recommendation")
-    strength, _ := record.Get("strength")
+    strengthMap, _ := record.Get("strength")
 
-    // Check for nil and type before appending to slice
-    if name != nil && strength != nil {
+    if strengthData, ok := strengthMap.(map[string]interface{}); ok {
+        low, _ := strengthData["low"].(int64)
+        high, _ := strengthData["high"].(int64)
+        strength := low + (high << 32)
+        
         if nameStr, ok := name.(string); ok {
-            if strengthInt, ok := strength.(int); ok {
-                recommendations = append(recommendations, Pairing{Name: nameStr, Strength: strengthInt})
-            } else {
-                // log or handle the case where strength is not an int
-            }
-        } else {
-            // log or handle the case where name is not a string
+            recommendations = append(recommendations, Pairing{Name: nameStr, Strength: strength})
         }
-    } else {
-        // log or handle the case where name or strength is nil
     }
 }
 
