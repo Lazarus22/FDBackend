@@ -11,6 +11,11 @@ import (
 	"os"
 )
 
+func echoEnvHandler(w http.ResponseWriter, r *http.Request) {
+	neo4jURL := os.Getenv("NEO4J_URL")
+	fmt.Fprintf(w, "NEO4J_URL: %s", neo4jURL)
+}
+
 func enforceHTTPS(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		proto := r.Header.Get("X-Forwarded-Proto")
@@ -23,6 +28,7 @@ func enforceHTTPS(next http.Handler) http.Handler {
 }
 
 func main() {
+	http.HandleFunc("/echo/env", echoEnvHandler)
 	// Initialize Queries
 	err := cypherQueries.InitializeQueries()
 	if err != nil {
