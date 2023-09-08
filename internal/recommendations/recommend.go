@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	"net/http"
+	"fmt"
 )
 
 type Pairing struct {
@@ -18,27 +19,54 @@ type RecommendationsResponse struct {
 	Recommendations []Pairing `json:"recommendations"`
 }
 
-func NewHandler(driver neo4j.DriverWithContext) func(w http.ResponseWriter, r *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		flavor := r.URL.Query().Get("flavor")
-		if flavor == "" {
-			http.Error(w, "Flavor is required", http.StatusBadRequest)
-			return
-		}
+func NewHandler(driver neo4j.DriverWithContext) http.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) {
+			flavor := r.URL.Query().Get("flavor")
 
-		query, err := cypherQueries.GetRecommendationsQuery("GetRecommendationsQuery")
+			fmt.Printf("Received flavor: %s\n", flavor)
+
+			// Create a session
+			session := driver.NewSession(neo4j.SessionConfig{})
+			defer session.Close()
+
+			// Fetching the Cypher query from your map
+			query, err := cypherQueries.GetRecommendationsQuery("GetRecommendationsQuery")
+			if err != nil {
+				fmt.Printf("Error fetching query: %v\n", err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+
+		var recommendations []Pairing
+		result, err := session.Run(query, map[string]interface{}{"flavor": flavor})
+
 		if err != nil {
+			fmt.Printf("Error running query: %v\n", err)
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(err.Error()))
 			return
 		}
-		
 
-		recommendations, err := getRecommendations(flavor, driver, query)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+		for result.Next() {
+			record := result.Record()
+			name, _ := record.Get("recommendation")
+			strengthMap, _ := record.Get("strength")
+
+			if strengthData, ok := strengthMap.(map[string]interface{}); ok {
+				strength := strengthData["low"].(int64)
+
+				if nameStr, ok := name.(string); ok {
+					recommendations = append(recommendations, Pairing{Name: nameStr, Strength: strength})
+				}
+			}
+		}
+
+		if err = result.Err(); err != nil {
+			fmt.Printf("Error iterating through query results: %v\n", err)
+			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
+
+		fmt.Printf("Final recommendations: %v\n", recommendations)
 
 		response := RecommendationsResponse{
 			Flavor:          flavor,
@@ -49,6 +77,7 @@ func NewHandler(driver neo4j.DriverWithContext) func(w http.ResponseWriter, r *h
 		json.NewEncoder(w).Encode(response)
 	}
 }
+
 
 func getRecommendations(flavor string, driver neo4j.DriverWithContext, query string) ([]Pairing, error) {
 	ctx := context.Background()
