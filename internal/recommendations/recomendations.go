@@ -13,6 +13,7 @@ type Pairing struct {
 	Strength       int      `json:"strength"`
 	Labels         []string `json:"labels"`
 	RelationshipType string `json:"relationshipType"`
+	NodeType        string   `json:"nodeType"` 
 }
 
 
@@ -79,28 +80,23 @@ func getRecommendations(flavor string, driver neo4j.DriverWithContext, query str
 		labels, _ := record.Get("labels")
 		relationshipType, _ := record.Get("relationshipType")  // new line
 	
-		// Check for nil and type before appending to slice
-		if name != nil && name != flavor {
-			if nameStr, ok := name.(string); ok {
-				if strengthVal, ok := strength.(int64); ok {
-					if labelsVal, ok := labels.([]interface{}); ok {
-						labelsStr := make([]string, len(labelsVal))
-						for i, label := range labelsVal {
-								labelsStr[i] = label.(string)
-						}
-						if relationshipTypeStr, ok := relationshipType.(string); ok {  // new line
-							recommendations = append(recommendations, Pairing{
-								Name:            nameStr,
-								Strength:        int(strengthVal),
-								Labels:          labelsStr,
-								RelationshipType: relationshipTypeStr,  // new line
-							})
-						}
-					}
+		if nameStr, ok := name.(string); ok {
+			if strengthVal, ok := strength.(int64); ok {
+				var firstLabel string
+				if labelsVal, ok := labels.([]interface{}); ok && len(labelsVal) > 0 {
+					firstLabel = labelsVal[0].(string)
+				}
+				if relationshipTypeStr, ok := relationshipType.(string); ok {
+					recommendations = append(recommendations, Pairing{
+						Name:            nameStr,
+						Strength:        int(strengthVal),
+						Labels:          []string{firstLabel},  // Or keep as it was if you want all labels
+						RelationshipType: relationshipTypeStr,
+						NodeType:        firstLabel,  // New field
+					})
 				}
 			}
 		}
-	}
 	
 
 	if err = result.Err(); err != nil {
