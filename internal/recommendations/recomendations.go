@@ -58,39 +58,40 @@ func getRecommendations(flavor string, driver neo4j.DriverWithContext, query str
 
 	tx, err := session.BeginTransaction(ctx)
 	if err != nil {
-		return nil, err
+			return nil, err
 	}
 
 	params := map[string]interface{}{"flavor": flavor}
 
 	result, err := tx.Run(ctx, query, params)
 	if err != nil {
-		tx.Rollback(ctx)
-		return nil, err
+			tx.Rollback(ctx)
+			return nil, err
 	}
 
 	for result.Next(ctx) {
-		record := result.Record()
-		name, _ := record.Get("recommendation")
-		strength, _ := record.Get("strength")
+			record := result.Record()
+			name, _ := record.Get("recommendation")
+			strength, _ := record.Get("value")
 
-		if name != nil && strength != nil {
-			if nameStr, ok := name.(string); ok {
-				if strengthInt, ok := strength.(int64); ok {
-					recommendations = append(recommendations, Pairing{Name: nameStr, Strength: int(strengthInt)})
-				}
+			// Check for nil and type before appending to slice
+			if name != nil && strength != nil {
+					if nameStr, ok := name.(string); ok {
+							if strengthInt, ok := strength.(int64); ok {
+									recommendations = append(recommendations, Pairing{Name: nameStr, Strength: int(strengthInt)})
+							}
+					}
 			}
-		}
 	}
 
 	if err = result.Err(); err != nil {
-		tx.Rollback(ctx)
-		return nil, err
+			tx.Rollback(ctx)
+			return nil, err
 	}
 
 	err = tx.Commit(ctx)
 	if err != nil {
-		return nil, err
+			return nil, err
 	}
 
 	return recommendations, nil
