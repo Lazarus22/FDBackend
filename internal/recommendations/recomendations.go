@@ -86,7 +86,7 @@ func getRecommendations(flavor string, driver neo4j.DriverWithContext, query str
 					if labelsVal, ok := labels.([]interface{}); ok {
 						labelsStr := make([]string, len(labelsVal))
 						for i, label := range labelsVal {
-							labelsStr[i] = label.(string)
+								labelsStr[i] = label.(string)
 						}
 						if relationshipTypeStr, ok := relationshipType.(string); ok {  // new line
 							recommendations = append(recommendations, Pairing{
