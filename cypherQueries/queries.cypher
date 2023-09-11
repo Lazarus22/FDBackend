@@ -1,3 +1,4 @@
-// GetAllFlavorsQuery
-MATCH (f:Flavor {name: $flavor})-[r:PAIRS_WITH]->(recommendation:Flavor)
-RETURN recommendation.name AS recommendation, r.strength AS strength
+// GetRecommendationsQuery
+MATCH (i1)-[r:pairs_with]->(i2)
+WHERE i1.name = $flavor OR r.property = $flavor
+RETURN i2.name AS recommendation, r.value AS strength

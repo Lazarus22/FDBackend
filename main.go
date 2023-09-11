@@ -11,12 +11,6 @@ import (
 	"os"
 )
 
-func echoEnvHandler(w http.ResponseWriter, _ *http.Request) {
-	neo4jURL := os.Getenv("NEO4J_URI")
-	fmt.Fprintf(w, "NEO4J_URI: %s", neo4jURL)
-}
-
-
 func enforceHTTPS(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		proto := r.Header.Get("X-Forwarded-Proto")
@@ -54,7 +48,6 @@ func main() {
 	defer driver.Close(ctx)
 
 	router := http.NewServeMux()
-	router.HandleFunc("/echo/env", echoEnvHandler) // Include this line
 	router.HandleFunc("/recommendations", recommendations.NewHandler(driver))
 
 	corsMiddleware := handlers.CORS(handlers.AllowedOrigins([]string{"*"}))
