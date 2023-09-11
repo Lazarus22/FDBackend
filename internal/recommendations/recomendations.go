@@ -9,11 +9,10 @@ import (
 )
 
 type Pairing struct {
-	Name            string   `json:"name"`
-	Strength        int      `json:"strength"`
-	Labels          []string `json:"labels"`
-	RelationshipType string  `json:"relationshipType"`
-	NodeType        string   `json:"nodeType"` // Keep NodeType
+	Name            string `json:"name"`
+	Strength        int    `json:"strength"`
+	RelationshipType string `json:"relationshipType"`
+	NodeType         string `json:"nodeType"`
 }
 
 type RecommendationsResponse struct {
@@ -76,28 +75,18 @@ func getRecommendations(flavor string, driver neo4j.DriverWithContext, query str
 		record := result.Record()
 		name, _ := record.Get("recommendation")
 		strength, _ := record.Get("value")
-		labels, _ := record.Get("labels")
 		relationshipType, _ := record.Get("relationshipType")
-		nodeType, _ := record.Get("nodeType") // Get NodeType directly
-		
+		nodeType, _ := record.Get("nodeType")
+
 		if nameStr, ok := name.(string); ok {
 			if strengthVal, ok := strength.(int64); ok {
-				var labelsStr []string
-				if labelsVal, ok := labels.([]interface{}); ok {
-					for _, label := range labelsVal {
-						if labelStr, ok := label.(string); ok {
-							labelsStr = append(labelsStr, labelStr)
-						}
-					}
-				}
 				if relationshipTypeStr, ok := relationshipType.(string); ok {
-					if nodeTypeStr, ok := nodeType.(string); ok { // Check for NodeType
+					if nodeTypeStr, ok := nodeType.(string); ok {
 						recommendations = append(recommendations, Pairing{
 							Name:            nameStr,
 							Strength:        int(strengthVal),
-							Labels:          labelsStr,
 							RelationshipType: relationshipTypeStr,
-							NodeType:        nodeTypeStr, 
+							NodeType:        nodeTypeStr,
 						})
 					}
 				}
