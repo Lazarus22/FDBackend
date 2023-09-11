@@ -1,6 +1,4 @@
 // GetRecommendationsQuery
-MATCH (i1)-[r:pairs_with]-(i2) 
-WHERE (i1.name=$flavor OR i2.name=$flavor) AND i1 <> i2
-RETURN i1.name, labels(i1), i2.name, labels(i2), r.value as strength
-
-
+MATCH (n)-[r:pairs_with]-(m)
+WHERE n.name = $flavor AND n.name <> m.name
+RETURN m.name as recommendation, r.value as value, labels(m) as labels
