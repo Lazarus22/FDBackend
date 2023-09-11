@@ -1,6 +1,7 @@
 package recommendations
 
 import (
+	"FDBackend/cypherQueries"
 	"context"
 	"encoding/json"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
@@ -25,9 +26,12 @@ func NewHandler(driver neo4j.DriverWithContext) func(w http.ResponseWriter, r *h
 			return
 		}
 
-		query := `MATCH (i1)-[r:pairs_with]->(i2)
-		WHERE i1.name = $flavor
-		RETURN i2.name AS recommendation`
+		query, err := cypherQueries.GetRecommendationsQuery("GetRecommendationsQuery")
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(err.Error()))
+			return
+		}
 		
 
 		recommendations, err := getRecommendations(flavor, driver, query)
