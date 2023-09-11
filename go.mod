@@ -9,5 +9,4 @@ require (
 
 require (
 	github.com/felixge/httpsnoop v1.0.1 // indirect
-	github.com/neo4j/neo4j-go-driver/v4 v4.4.7 // indirect
 )

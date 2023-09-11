@@ -32,7 +32,6 @@ func NewHandler(driver neo4j.DriverWithContext) func(w http.ResponseWriter, r *h
 			w.Write([]byte(err.Error()))
 			return
 		}
-		
 
 		recommendations, err := getRecommendations(flavor, driver, query)
 		if err != nil {
@@ -71,22 +70,16 @@ func getRecommendations(flavor string, driver neo4j.DriverWithContext, query str
 	}
 
 	for result.Next(ctx) {
-    record := result.Record()
-    name, _ := record.Get("recommendation")
+		record := result.Record()
+		name, _ := record.Get("recommendation")
 
-    // Check for nil and type before appending to slice
-    if name != nil {
-        if nameStr, ok := name.(string); ok {
-            recommendations = append(recommendations, Pairing{Name: nameStr})
-        } else {
-            // log or handle the case where name is not a string
-        }
-    } else {
-        // log or handle the case where name is nil
-    }
-}
-
-
+		// Check for nil and type before appending to slice
+		if name != nil {
+			if nameStr, ok := name.(string); ok {
+				recommendations = append(recommendations, Pairing{Name: nameStr})
+			}
+		}
+	}
 
 	if err = result.Err(); err != nil {
 		tx.Rollback(ctx)
