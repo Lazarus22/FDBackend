@@ -72,11 +72,13 @@ func getRecommendations(flavor string, driver neo4j.DriverWithContext, query str
 	for result.Next(ctx) {
 		record := result.Record()
 		name, _ := record.Get("recommendation")
+		strength, _ := record.Get("strength")
 
-		// Check for nil and type before appending to slice
-		if name != nil {
+		if name != nil && strength != nil {
 			if nameStr, ok := name.(string); ok {
-				recommendations = append(recommendations, Pairing{Name: nameStr})
+				if strengthInt, ok := strength.(int64); ok {
+					recommendations = append(recommendations, Pairing{Name: nameStr, Strength: int(strengthInt)})
+				}
 			}
 		}
 	}
