@@ -9,11 +9,12 @@ import (
 )
 
 type Pairing struct {
-	Name            string   `json:"name"`
-	Strength        int      `json:"strength"`
-	Labels          []string `json:"labels"`
-	RelationshipType string  `json:"relationshipType"`
+	Name           string   `json:"name"`
+	Strength       int      `json:"strength"`
+	Labels         []string `json:"labels"`
+	RelationshipType string `json:"relationshipType"`
 }
+
 
 type RecommendationsResponse struct {
 	Flavor          string    `json:"flavor"`
@@ -60,45 +61,56 @@ func getRecommendations(flavor string, driver neo4j.DriverWithContext, query str
 
 	tx, err := session.BeginTransaction(ctx)
 	if err != nil {
-		return nil, err
+			return nil, err
 	}
 
 	params := map[string]interface{}{"flavor": flavor}
 
 	result, err := tx.Run(ctx, query, params)
 	if err != nil {
-		tx.Rollback(ctx)
-		return nil, err
+			tx.Rollback(ctx)
+			return nil, err
 	}
 
 	for result.Next(ctx) {
 		record := result.Record()
-		name, _ := record.Get("name")
-		strength, _ := record.Get("strength")
+		name, _ := record.Get("recommendation")
+		strength, _ := record.Get("value")
 		labels, _ := record.Get("labels")
-		relationshipType, _ := record.Get("relationshipType")
-
-		if nameStr, ok := name.(string); ok {
-			if strengthVal, ok := strength.(int64); ok {
-				var firstLabel string
-				if labelsVal, ok := labels.([]interface{}); ok && len(labelsVal) > 0 {
-					firstLabel = labelsVal[0].(string)
-				}
-				if relationshipTypeStr, ok := relationshipType.(string); ok {
-					recommendations = append(recommendations, Pairing{Name: nameStr, Strength: int(strengthVal), Labels: []string{firstLabel}, RelationshipType: relationshipTypeStr})
+		relationshipType, _ := record.Get("relationshipType")  // new line
+	
+		// Check for nil and type before appending to slice
+		if name != nil && name != flavor {
+			if nameStr, ok := name.(string); ok {
+				if strengthVal, ok := strength.(int64); ok {
+					if labelsVal, ok := labels.([]interface{}); ok {
+						labelsStr := make([]string, len(labelsVal))
+						for i, label := range labelsVal {
+								labelsStr[i] = label.(string)
+						}
+						if relationshipTypeStr, ok := relationshipType.(string); ok {  // new line
+							recommendations = append(recommendations, Pairing{
+								Name:            nameStr,
+								Strength:        int(strengthVal),
+								Labels:          labelsStr,
+								RelationshipType: relationshipTypeStr,  // new line
+							})
+						}
+					}
 				}
 			}
 		}
 	}
+	
 
 	if err = result.Err(); err != nil {
-		tx.Rollback(ctx)
-		return nil, err
+			tx.Rollback(ctx)
+			return nil, err
 	}
 
 	err = tx.Commit(ctx)
 	if err != nil {
-		return nil, err
+			return nil, err
 	}
 
 	return recommendations, nil
