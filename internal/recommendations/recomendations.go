@@ -26,8 +26,8 @@ func NewHandler(driver neo4j.DriverWithContext) func(w http.ResponseWriter, r *h
 		}
 
 		query := `MATCH (i1)-[r:pairs_with]->(i2)
-							WHERE i1.name = $flavor OR r.property = $flavor
-							RETURN i2.name AS recommendation, r.value AS strength`
+		WHERE i1.name = $flavor
+		RETURN i2.name AS recommendation`
 		
 
 		recommendations, err := getRecommendations(flavor, driver, query)
@@ -69,23 +69,19 @@ func getRecommendations(flavor string, driver neo4j.DriverWithContext, query str
 	for result.Next(ctx) {
     record := result.Record()
     name, _ := record.Get("recommendation")
-    strength, _ := record.Get("strength")
 
     // Check for nil and type before appending to slice
-    if name != nil && strength != nil {
+    if name != nil {
         if nameStr, ok := name.(string); ok {
-            if strengthInt, ok := strength.(int); ok {
-                recommendations = append(recommendations, Pairing{Name: nameStr, Strength: strengthInt})
-            } else {
-                // log or handle the case where strength is not an int
-            }
+            recommendations = append(recommendations, Pairing{Name: nameStr})
         } else {
             // log or handle the case where name is not a string
         }
     } else {
-        // log or handle the case where name or strength is nil
+        // log or handle the case where name is nil
     }
 }
+
 
 
 	if err = result.Err(); err != nil {
