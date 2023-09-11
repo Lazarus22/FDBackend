@@ -9,10 +9,12 @@ import (
 )
 
 type Pairing struct {
-	Name     string   `json:"name"`
-	Strength int      `json:"strength"`
-	Labels   []string `json:"labels"`
+	Name           string   `json:"name"`
+	Strength       int      `json:"strength"`
+	Labels         []string `json:"labels"`
+	RelationshipType string `json:"relationshipType"`
 }
+
 
 type RecommendationsResponse struct {
 	Flavor          string    `json:"flavor"`
@@ -71,26 +73,35 @@ func getRecommendations(flavor string, driver neo4j.DriverWithContext, query str
 	}
 
 	for result.Next(ctx) {
-			record := result.Record()
-
-			name, ok1 := record.Get("recommendation")
-			strength, ok2 := record.Get("value")
-			labels, ok3 := record.Get("labels")
-
-			if ok1 && ok2 && ok3 && name != nil && name != flavor {
-					if nameStr, ok := name.(string); ok {
-							if strengthVal, ok := strength.(int64); ok {
-									if labelsVal, ok := labels.([]interface{}); ok {
-											strLabels := make([]string, len(labelsVal))
-											for i, label := range labelsVal {
-													strLabels[i] = label.(string)
-											}
-											recommendations = append(recommendations, Pairing{Name: nameStr, Strength: int(strengthVal), Labels: strLabels})
-									}
-							}
+		record := result.Record()
+		name, _ := record.Get("recommendation")
+		strength, _ := record.Get("value")
+		labels, _ := record.Get("labels")
+		relationshipType, _ := record.Get("relationshipType")  // new line
+	
+		// Check for nil and type before appending to slice
+		if name != nil && name != flavor {
+			if nameStr, ok := name.(string); ok {
+				if strengthVal, ok := strength.(int64); ok {
+					if labelsVal, ok := labels.([]interface{}); ok {
+						labelsStr := make([]string, len(labelsVal))
+						for i, label := range labelsVal {
+							labelsStr[i] = label.(string)
+						}
+						if relationshipTypeStr, ok := relationshipType.(string); ok {  // new line
+							recommendations = append(recommendations, Pairing{
+								Name:            nameStr,
+								Strength:        int(strengthVal),
+								Labels:          labelsStr,
+								RelationshipType: relationshipTypeStr,  // new line
+							})
+						}
 					}
+				}
 			}
+		}
 	}
+	
 
 	if err = result.Err(); err != nil {
 			tx.Rollback(ctx)
