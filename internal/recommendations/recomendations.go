@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	"net/http"
+	"time"
 )
 
 type Pairing struct {
@@ -47,9 +48,11 @@ func NewHandler(driver neo4j.DriverWithContext) func(w http.ResponseWriter, r *h
 		}
 
 		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Expires", time.Now().Add(time.Hour*24*365).Format(http.TimeFormat))  // Set Expires header
 		json.NewEncoder(w).Encode(response)
 	}
 }
+
 
 func getRecommendations(flavor string, driver neo4j.DriverWithContext, query string) ([]Pairing, error) {
 	ctx := context.Background()
@@ -106,3 +109,4 @@ func getRecommendations(flavor string, driver neo4j.DriverWithContext, query str
 
 	return recommendations, nil
 }
+
