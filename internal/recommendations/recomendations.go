@@ -7,6 +7,7 @@ import (
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	"net/http"
 	"time"
+	"strings"
 )
 
 type Pairing struct {
@@ -82,6 +83,9 @@ func getRecommendations(flavor string, driver neo4j.DriverWithContext, query str
 		nodeType, _ := record.Get("nodeType")
 
 		if nameStr, ok := name.(string); ok {
+			// Convert to lowercase
+			nameStr = strings.ToLower(nameStr)
+			// ... (existing code)
 			if strengthVal, ok := strength.(int64); ok {
 				if relationshipTypeStr, ok := relationshipType.(string); ok {
 					if nodeTypeStr, ok := nodeType.(string); ok {
