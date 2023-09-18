@@ -43,8 +43,10 @@ func NewHandler(driver neo4j.DriverWithContext) func(w http.ResponseWriter, r *h
 			return
 		}
 
+		lowercaseFlavor := strings.ToLower(flavor)
+
 		response := RecommendationsResponse{
-			Flavor:          flavor,
+			Flavor:          lowercaseFlavor,
 			Recommendations: recommendations,
 		}
 
@@ -83,9 +85,6 @@ func getRecommendations(flavor string, driver neo4j.DriverWithContext, query str
 		nodeType, _ := record.Get("nodeType")
 
 		if nameStr, ok := name.(string); ok {
-			// Convert to lowercase
-			nameStr = strings.ToLower(nameStr)
-			// ... (existing code)
 			if strengthVal, ok := strength.(int64); ok {
 				if relationshipTypeStr, ok := relationshipType.(string); ok {
 					if nodeTypeStr, ok := nodeType.(string); ok {
