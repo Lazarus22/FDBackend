@@ -46,8 +46,11 @@ func InitializeQueries() error {
 }
 
 func GetRecommendationsQuery(key string) (string, error) {
-	if query, exists := QueryMap[key]; exists {
-		return query, nil
+	lowerKey := strings.ToLower(key)
+	for k, v := range QueryMap {
+			if strings.ToLower(k) == lowerKey {
+					return v, nil
+			}
 	}
 	return "", errors.New("query not found")
 }
