@@ -9,5 +9,4 @@ require (
 
 require (
 	github.com/felixge/httpsnoop v1.0.3 // indirect
-	github.com/jonahgeorge/force-ssl-heroku v1.0.1
 )
