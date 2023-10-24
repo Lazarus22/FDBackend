@@ -9,18 +9,8 @@ import (
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	"net/http"
 	"os"
+	forcesslheroku "github.com/jonahgeorge/force-ssl-heroku"
 )
-
-func enforceHTTPS(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		proto := r.Header.Get("X-Forwarded-Proto")
-		if proto == "http" || proto == "" && r.TLS == nil {
-			http.Redirect(w, r, "https://"+r.Host+r.RequestURI, http.StatusMovedPermanently)
-			return
-		}
-		next.ServeHTTP(w, r)
-	})
-}
 
 func main() {
 	// Initialize Queries
@@ -54,8 +44,11 @@ func main() {
 
 	isProduction := os.Getenv("ENV") == "PRODUCTION"
 
+	// Wrap your router with the force-ssl-heroku middleware
+	secureRouter := forcesslheroku.ForceSsl(router)
+
 	if isProduction {
-		http.ListenAndServe(":"+port, corsMiddleware(enforceHTTPS(router)))
+		http.ListenAndServe(":"+port, corsMiddleware(secureRouter))
 	} else {
 		http.ListenAndServe(":"+port, corsMiddleware(router))
 	}
