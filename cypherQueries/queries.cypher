@@ -11,7 +11,7 @@ WHERE toLower(n.name) = toLower($flavor) AND toLower(n.name) <> toLower(m.name) 
   'has_weight', 
   'uses_technique'
 ]
-RETURN m.name as recommendation, r.value as value, labels(m) as labels, type(r) as relationshipType, head(labels(m)) as nodeType
+RETURN m.name as recommendation, r.value as value, labels(m) as labels, type(r) as relationshipType, head(labels(m)) as nodeType;
 // GetAutocompleteSuggestions
 MATCH (n)-[r]-(m)
 WHERE toLower(n.name) STARTS WITH toLower($prefix)
