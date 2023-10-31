@@ -6,13 +6,13 @@ import (
 	"encoding/json"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	"net/http"
-	"time"
 	"strings"
+	"time"
 )
 
 type Pairing struct {
-	Name            string `json:"name"`
-	Strength        int    `json:"strength"`
+	Name             string `json:"name"`
+	Strength         int    `json:"strength"`
 	RelationshipType string `json:"relationshipType"`
 	NodeType         string `json:"nodeType"`
 }
@@ -43,6 +43,11 @@ func NewHandler(driver neo4j.DriverWithContext) func(w http.ResponseWriter, r *h
 			return
 		}
 
+		// Initialize to a non-nil zero-length slice if recommendations is nil
+		if recommendations == nil {
+			recommendations = make([]Pairing, 0)
+		}
+
 		lowercaseFlavor := strings.ToLower(flavor)
 
 		response := RecommendationsResponse{
@@ -51,7 +56,7 @@ func NewHandler(driver neo4j.DriverWithContext) func(w http.ResponseWriter, r *h
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		w.Header().Set("Expires", time.Now().Add(time.Hour*24*365).Format(http.TimeFormat))  // Set Expires header
+		w.Header().Set("Expires", time.Now().Add(time.Hour*24*365).Format(http.TimeFormat)) // Set Expires header
 		json.NewEncoder(w).Encode(response)
 	}
 }
@@ -75,6 +80,11 @@ func AutoCompleteHandler(driver neo4j.DriverWithContext) func(w http.ResponseWri
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
+		}
+
+		// Initialize to a non-nil zero-length slice if suggestions is nil
+		if suggestions == nil {
+			suggestions = make([]string, 0)
 		}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -120,9 +130,12 @@ func getSuggestions(prefix string, driver neo4j.DriverWithContext, query string)
 		return nil, err
 	}
 
+	if suggestions == nil {
+		suggestions = make([]string, 0)
+	}
+
 	return suggestions, nil
 }
-
 
 func getRecommendations(flavor string, driver neo4j.DriverWithContext, query string) ([]Pairing, error) {
 	ctx := context.Background()
@@ -156,10 +169,10 @@ func getRecommendations(flavor string, driver neo4j.DriverWithContext, query str
 				if relationshipTypeStr, ok := relationshipType.(string); ok {
 					if nodeTypeStr, ok := nodeType.(string); ok {
 						recommendations = append(recommendations, Pairing{
-							Name:            nameStr,
-							Strength:        int(strengthVal),
+							Name:             nameStr,
+							Strength:         int(strengthVal),
 							RelationshipType: relationshipTypeStr,
-							NodeType:        nodeTypeStr,
+							NodeType:         nodeTypeStr,
 						})
 					}
 				}
@@ -177,6 +190,9 @@ func getRecommendations(flavor string, driver neo4j.DriverWithContext, query str
 		return nil, err
 	}
 
+	if recommendations == nil {
+		recommendations = make([]Pairing, 0)
+	}
+
 	return recommendations, nil
 }
-
