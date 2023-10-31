@@ -18,5 +18,3 @@ MATCH (n)
 WHERE toLower(n.name) STARTS WITH toLower($prefix)
 RETURN DISTINCT n.name AS suggestion
 LIMIT 10
-
-
