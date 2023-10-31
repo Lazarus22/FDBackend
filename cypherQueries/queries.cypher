@@ -13,7 +13,6 @@ WHERE toLower(n.name) = toLower($flavor) AND toLower(n.name) <> toLower(m.name) 
 ]
 RETURN m.name as recommendation, r.value as value, labels(m) as labels, type(r) as relationshipType, head(labels(m)) as nodeType;
 // GetAutocompleteSuggestions
-// GetAutocompleteSuggestions
 MATCH (n)-[r]-(m)
 WHERE toLower(n.name) STARTS WITH toLower($prefix)
 RETURN DISTINCT n.name AS suggestion
