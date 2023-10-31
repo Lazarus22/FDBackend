@@ -49,6 +49,9 @@ func main() {
 
 	router := http.NewServeMux()
 	router.HandleFunc("/recommendations", recommendations.NewHandler(driver))
+    
+    // Adding a new route for autocomplete
+	router.HandleFunc("/autocomplete", recommendations.AutoCompleteHandler(driver))
 
 	corsMiddleware := handlers.CORS(handlers.AllowedOrigins([]string{"*"}))
 

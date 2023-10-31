@@ -54,3 +54,5 @@ func GetRecommendationsQuery(key string) (string, error) {
 	}
 	return "", errors.New("query not found")
 }
+
+
