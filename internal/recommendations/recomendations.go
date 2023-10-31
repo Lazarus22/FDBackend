@@ -56,49 +56,6 @@ func NewHandler(driver neo4j.DriverWithContext) func(w http.ResponseWriter, r *h
 	}
 }
 
-func getSuggestions(prefix string, driver neo4j.DriverWithContext, query string) ([]string, error) {
-	ctx := context.Background()
-	session := driver.NewSession(ctx, neo4j.SessionConfig{DatabaseName: "neo4j"})
-	defer session.Close(ctx)
-
-	var suggestions []string
-
-	tx, err := session.BeginTransaction(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	params := map[string]interface{}{"prefix": prefix}
-
-	result, err := tx.Run(ctx, query, params)
-	if err != nil {
-		tx.Rollback(ctx)
-		return nil, err
-	}
-
-	for result.Next(ctx) {
-		record := result.Record()
-		suggestion, _ := record.Get("suggestion")
-
-		if suggestionStr, ok := suggestion.(string); ok {
-			suggestions = append(suggestions, suggestionStr)
-		}
-	}
-
-	if err = result.Err(); err != nil {
-		tx.Rollback(ctx)
-		return nil, err
-	}
-
-	err = tx.Commit(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	return suggestions, nil
-}
-
-
 func AutoCompleteHandler(driver neo4j.DriverWithContext) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		prefix := r.URL.Query().Get("prefix")
@@ -123,6 +80,47 @@ func AutoCompleteHandler(driver neo4j.DriverWithContext) func(w http.ResponseWri
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(suggestions)
 	}
+}
+
+func getSuggestions(prefix string, driver neo4j.DriverWithContext, query string) ([]string, error) {
+	ctx := context.Background()
+	session := driver.NewSession(ctx, neo4j.SessionConfig{DatabaseName: "neo4j"})
+	defer session.Close(ctx)
+
+	var suggestions []string
+
+	tx, err := session.BeginTransaction(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	params := map[string]interface{}{"prefix": prefix}
+
+	result, err := tx.Run(ctx, query, params)
+	if err != nil {
+		tx.Rollback(ctx)
+		return nil, err
+	}
+
+	for result.Next(ctx) {
+		record := result.Record()
+		suggestion, _ := record.Get("suggestion")
+		if suggestionStr, ok := suggestion.(string); ok {
+			suggestions = append(suggestions, suggestionStr)
+		}
+	}
+
+	if err = result.Err(); err != nil {
+		tx.Rollback(ctx)
+		return nil, err
+	}
+
+	err = tx.Commit(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return suggestions, nil
 }
 
 
