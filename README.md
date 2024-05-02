@@ -24,5 +24,3 @@ bash
 Usage
 
     Send HTTP requests to localhost:3000 to interact with the database.
-
-//test
